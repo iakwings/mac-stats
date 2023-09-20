@@ -474,7 +474,8 @@ private class SidebarView: NSStackView {
     }
     
     @objc private func reportBug(_ sender: Any) {
-        NSWorkspace.shared.open(URL(string: "https://github.com/exelban/stats/issues/new")!)
+        //NSWorkspace.shared.open(URL(string: "https://github.com/exelban/stats/issues/new")!)
+        NSWorkspace.shared.open(URL(string: "https://github.com/iakwings/mac-stats/issues/new")!)
     }
     
     @objc private func donate(_ sender: NSButton) {

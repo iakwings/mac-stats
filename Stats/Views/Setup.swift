@@ -405,12 +405,14 @@ private class SetupView_4: NSStackView {
         
         container.addRow(with: [self.option(
             tag: 1,
-            state: telemetry.isEnabled,
+            //state: telemetry.isEnabled,
+            state: true,
             text: localizedString("Share anonymous telemetry data")
         )])
         container.addRow(with: [self.option(
             tag: 2,
-            state: !telemetry.isEnabled,
+            //state: !telemetry.isEnabled,
+            state: false,
             text: localizedString("Do not share anonymous telemetry data")
         )])
         
@@ -432,7 +434,7 @@ private class SetupView_4: NSStackView {
     }
     
     @objc private func toggle(_ sender: NSButton) {
-        telemetry.isEnabled = sender.tag == 1
+        //telemetry.isEnabled = sender.tag == 1
     }
 }
 
