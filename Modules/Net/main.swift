@@ -121,17 +121,18 @@ public class Network: Module {
     
     private var usageReader: UsageReader? = nil
     private var processReader: ProcessReader? = nil
-    private var connectivityReader: ConnectivityReader? = nil
+    //private var connectivityReader: ConnectivityReader? = nil
+    private let connectivityReader: ConnectivityReader? = nil
     
-    private let ipUpdater = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Network.IP")
+    //private let ipUpdater = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Network.IP")
     private let usageReseter = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Network.Usage")
     
     private var widgetActivationThreshold: Int {
         Store.shared.int(key: "\(self.config.name)_widgetActivationThreshold", defaultValue: 0) * 1_024
     }
-    private var publicIPRefreshInterval: String {
-        Store.shared.string(key: "\(self.name)_publicIPRefreshInterval", defaultValue: "never")
-    }
+    //private var publicIPRefreshInterval: String {
+    //    Store.shared.string(key: "\(self.name)_publicIPRefreshInterval", defaultValue: "never")
+    //}
     
     public init() {
         self.settingsView = Settings("Network")
@@ -147,7 +148,7 @@ public class Network: Module {
         
         self.usageReader = UsageReader(.network)
         self.processReader = ProcessReader(.network)
-        self.connectivityReader = ConnectivityReader(.network)
+        //self.connectivityReader = ConnectivityReader(.network)
         
         self.settingsView.callbackWhenUpdateNumberOfProcesses = {
             self.popupView.numberOfProcessesUpdated()
@@ -187,7 +188,7 @@ public class Network: Module {
             }
         }
         self.settingsView.publicIPRefreshIntervalCallback = { [weak self] in
-            self?.setIPUpdater()
+            //self?.setIPUpdater()
         }
         
         if let reader = self.usageReader {
@@ -200,7 +201,10 @@ public class Network: Module {
             self.addReader(reader)
         }
         
-        self.setIPUpdater()
+        self.settingsView.togglePublicIPCallback = {
+            self.popupView.togglePublicIP()
+        }
+        //self.setIPUpdater()
         self.setUsageReset()
     }
     
@@ -249,29 +253,29 @@ public class Network: Module {
         }
     }
     
-    private func setIPUpdater() {
-        self.ipUpdater.invalidate()
-        
-        switch self.publicIPRefreshInterval {
-        case "hour":
-            self.ipUpdater.interval = 60 * 60
-        case "12":
-            self.ipUpdater.interval = 60 * 60 * 12
-        case "24":
-            self.ipUpdater.interval = 60 * 60 * 24
-        default: return
-        }
-        
-        self.ipUpdater.repeats = true
-        self.ipUpdater.schedule { (completion: @escaping NSBackgroundActivityScheduler.CompletionHandler) in
-            guard self.enabled && self.isAvailable() else {
-                return
-            }
-            debug("going to automatically refresh IP address...")
-            NotificationCenter.default.post(name: .refreshPublicIP, object: nil, userInfo: nil)
-            completion(NSBackgroundActivityScheduler.Result.finished)
-        }
-    }
+    //private func setIPUpdater() {
+    //    self.ipUpdater.invalidate()
+    //    
+    //    switch self.publicIPRefreshInterval {
+    //    case "hour":
+    //        self.ipUpdater.interval = 60 * 60
+    //    case "12":
+    //        self.ipUpdater.interval = 60 * 60 * 12
+    //    case "24":
+    //        self.ipUpdater.interval = 60 * 60 * 24
+    //    default: return
+    //    }
+    //    
+    //    self.ipUpdater.repeats = true
+    //    self.ipUpdater.schedule { (completion: @escaping NSBackgroundActivityScheduler.CompletionHandler) in
+    //        guard self.enabled && self.isAvailable() else {
+    //            return
+    //        }
+    //        debug("going to automatically refresh IP address...")
+    //        NotificationCenter.default.post(name: .refreshPublicIP, object: nil, userInfo: nil)
+    //        completion(NSBackgroundActivityScheduler.Result.finished)
+    //    }
+    //}
     
     private func setUsageReset() {
         self.usageReseter.invalidate()

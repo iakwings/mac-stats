@@ -25,35 +25,46 @@ private struct Report: Codable {
 public class Telemetry {
     public var isEnabled: Bool {
         get {
-            self._isEnabled
+            //self._isEnabled
+            false
         }
         set {
-            self.toggle(newValue)
+            //self.toggle(newValue)
+            return
         }
     }
     
     private var url: URL = URL(string: "https://api.serhiy.io/v1/stats/telemetry")!
     
-    private var _isEnabled: Bool = true
+    //private var _isEnabled: Bool = true
+    private var _isEnabled: Bool {
+        get { false }
+        set { return }
+    }
     
     private let id: UUID
     private let repeater = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.Telemetry")
     private var modules: UnsafePointer<[Module]>
     
     public init(_ modules: UnsafePointer<[Module]>) {
-        self._isEnabled = Store.shared.bool(key: "telemetry", defaultValue: true)
-        self.id = UUID(uuidString: Store.shared.string(key: "telemetry_id", defaultValue: UUID().uuidString)) ?? UUID()
+        //self._isEnabled = Store.shared.bool(key: "telemetry", defaultValue: true)
+        //self.id = UUID(uuidString: Store.shared.string(key: "telemetry_id", defaultValue: UUID().uuidString)) ?? UUID()
+        self.id = UUID()
         self.modules = modules
         
-        if !Store.shared.exist(key: "telemetry_id") {
-            Store.shared.set(key: "telemetry_id", value: self.id.uuidString)
-            self.toggle(self.isEnabled)
-        }
+        //if !Store.shared.exist(key: "telemetry_id") {
+        //    Store.shared.set(key: "telemetry_id", value: self.id.uuidString)
+        //    self.toggle(self.isEnabled)
+        //}
+        Store.shared.set(key: "telemetry", value: false)
+        Store.shared.set(key: "telemetry_id", value: self.id.uuidString)
         
-        self.report()
+        //self.report()
     }
     
     @objc public func report() {
+        if true { return }
+
         guard self.isEnabled else { return }
         
         let obj: Report = Report(
@@ -76,6 +87,8 @@ public class Telemetry {
     }
     
     private func toggle(_ newValue: Bool) {
+        if true { return }
+
         self._isEnabled = newValue
         Store.shared.set(key: "telemetry", value: newValue)
         
@@ -85,7 +98,7 @@ public class Telemetry {
             self.repeater.repeats = true
             self.repeater.interval = 60 * 60 * 24
             self.repeater.schedule { (completion: @escaping NSBackgroundActivityScheduler.CompletionHandler) in
-                self.report()
+                //self.report()
                 completion(NSBackgroundActivityScheduler.Result.finished)
             }
         }

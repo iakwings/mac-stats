@@ -485,7 +485,8 @@ public class PieChartView: NSView {
         var segments = self.segments
         let totalAmount = segments.reduce(0) { $0 + $1.value }
         if totalAmount < 1 {
-            segments.append(circle_segment(value: Double(1-totalAmount), color: self.nonActiveSegmentColor.withAlphaComponent(0.5)))
+            //segments.append(circle_segment(value: Double(1-totalAmount), color: self.nonActiveSegmentColor.withAlphaComponent(0.5)))
+            segments.append(circle_segment(value: Double(1-totalAmount), color: self.nonActiveSegmentColor))
         }
         
         let centerPoint = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
@@ -651,7 +652,8 @@ public class TachometerGraphView: NSView {
         var segments = self.segments
         let totalAmount = segments.reduce(0) { $0 + $1.value }
         if totalAmount < 1 {
-            segments.append(circle_segment(value: Double(1-totalAmount), color: NSColor.lightGray.withAlphaComponent(0.5)))
+            //segments.append(circle_segment(value: Double(1-totalAmount), color: NSColor.lightGray.withAlphaComponent(0.5)))
+            segments.append(circle_segment(value: Double(1-totalAmount), color: self.nonActiveSegmentColor))
         }
         
         let centerPoint = CGPoint(x: self.frame.width/2, y: self.frame.height/2)
@@ -691,6 +693,16 @@ public class TachometerGraphView: NSView {
         var original = self.frame
         original = frame
         self.frame = original
+    }
+
+    private var nonActiveSegmentColor: NSColor = NSColor.lightGray
+
+    public func setNonActiveSegmentColor(_ newColor: NSColor) {
+        guard self.nonActiveSegmentColor != newColor else { return }
+        self.nonActiveSegmentColor = newColor
+        if self.window?.isVisible ?? false {
+            self.display()
+        }
     }
 }
 

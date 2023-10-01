@@ -93,6 +93,14 @@ public class RAM: Module {
         }
         return color.additional as! NSColor
     }
+    private var freeColor: NSColor {
+        let color = Color.secondGray
+        let key = Store.shared.string(key: "\(self.config.name)_freeColor", defaultValue: color.key)
+        if let c = Color.fromString(key).additional as? NSColor {
+            return c
+        }
+        return color.additional as! NSColor
+    }
     
     public init() {
         self.settingsView = Settings("RAM")
@@ -182,6 +190,7 @@ public class RAM: Module {
                     circle_segment(value: value.wired/total, color: self.wiredColor),
                     circle_segment(value: value.compressed/total, color: self.compressedColor)
                 ])
+                widget.chart.setNonActiveSegmentColor(self.freeColor)
             case let widget as MemoryWidget:
                 let free = Units(bytes: Int64(value.free)).getReadableMemory()
                 let used = Units(bytes: Int64(value.used)).getReadableMemory()
@@ -192,6 +201,7 @@ public class RAM: Module {
                     circle_segment(value: value.wired/total, color: self.wiredColor),
                     circle_segment(value: value.compressed/total, color: self.compressedColor)
                 ])
+                widget.chart.setNonActiveSegmentColor(self.freeColor)
             default: break
             }
         }

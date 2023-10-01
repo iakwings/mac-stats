@@ -14,7 +14,8 @@ import Kit
 
 class ApplicationSettings: NSStackView {
     private var updateIntervalValue: String {
-        Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)
+        //Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)
+        AppUpdateInterval.never.rawValue
     }
     
     private var temperatureUnitsValue: String {
@@ -90,7 +91,8 @@ class ApplicationSettings: NSStackView {
     
     public func viewWillAppear() {
         self.startAtLoginBtn?.state = LaunchAtLogin.isEnabled ? .on : .off
-        self.telemetryBtn?.state = telemetry.isEnabled ? .on : .off
+        //self.telemetryBtn?.state = telemetry.isEnabled ? .on : .off
+        self.telemetryBtn?.state = .off
         
         var idx = self.updateSelector?.indexOfSelectedItem ?? 0
         if let items = self.updateSelector?.menu?.items {
@@ -179,15 +181,15 @@ class ApplicationSettings: NSStackView {
         grid.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         grid.setContentHuggingPriority(.defaultHigh, for: .vertical)
         
-        self.updateSelector = selectView(
-            action: #selector(self.toggleUpdateInterval),
-            items: AppUpdateIntervals,
-            selected: self.updateIntervalValue
-        )
-        grid.addRow(with: [
-            self.titleView(localizedString("Check for updates")),
-            self.updateSelector!
-        ])
+        //self.updateSelector = selectView(
+        //    action: #selector(self.toggleUpdateInterval),
+        //    items: AppUpdateIntervals,
+        //    selected: self.updateIntervalValue
+        //)
+        //grid.addRow(with: [
+        //    self.titleView(localizedString("Check for updates")),
+        //    self.updateSelector!
+        //])
         grid.addRow(with: [
             self.titleView(localizedString("Temperature")),
             selectView(
@@ -210,7 +212,8 @@ class ApplicationSettings: NSStackView {
         
         self.telemetryBtn = self.toggleView(
             action: #selector(self.toggleTelemetry),
-            state: telemetry.isEnabled,
+            //state: telemetry.isEnabled,
+            state: false,
             text: localizedString("Share anonymous telemetry")
         )
         grid.addRow(with: [NSGridCell.emptyContentView, self.telemetryBtn!])
@@ -341,6 +344,11 @@ class ApplicationSettings: NSStackView {
     // MARK: - actions
     
     @objc private func updateAction(_ sender: NSObject) {
+        if true {
+            NSWorkspace.shared.open(URL(string: "https://github.com/iakwings/mac-stats/releases")!)
+            return
+        }
+
         updater.check(force: true, completion: { result, error in
             if error != nil {
                 debug("error updater.check(): \(error!.localizedDescription)")
@@ -397,8 +405,12 @@ class ApplicationSettings: NSStackView {
         
         if alert.runModal() == .alertFirstButtonReturn {
             Store.shared.reset()
-            if let path = Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent().absoluteString {
-                asyncShell("/usr/bin/open \(path)")
+            //if let path = Bundle.main.resourceURL?.deletingLastPathComponent().deletingLastPathComponent().absoluteString {
+            //    asyncShell("/usr/bin/open \(path)")
+            //    NSApp.terminate(self)
+            //}
+            if let path = Bundle.main.resourceURL?.absoluteURL.deletingLastPathComponent().deletingLastPathComponent().path {
+                asyncShell("/usr/bin/open -- \(shellEscape(path))")
                 NSApp.terminate(self)
             }
         }
@@ -432,7 +444,12 @@ class ApplicationSettings: NSStackView {
     }
     
     @objc private func toggleTelemetry(_ sender: NSButton) {
-        telemetry.isEnabled = sender.state == NSControl.StateValue.on
+        //telemetry.isEnabled = sender.state == NSControl.StateValue.on
+        Store.shared.set(key: "telemetry", value: false)
+        Store.shared.remove("telemetry_id")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: {
+            self.telemetryBtn?.state = .off
+        })
     }
 }
 

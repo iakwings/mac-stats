@@ -38,8 +38,10 @@ internal class Popup: PopupWrapper {
     private var totalDownloadLabel: LabelField? = nil
     private var totalDownloadField: ValueField? = nil
     private var statusField: ValueField? = nil
-    private var connectivityField: ValueField? = nil
+    //private var connectivityField: ValueField? = nil
+    private let connectivityField: ValueField? = nil
     
+    private var publicIPView: NSView? = nil
     private var publicIPStackView: NSStackView? = nil
     private var publicIPv4Field: ValueField? = nil
     private var publicIPv6Field: ValueField? = nil
@@ -109,7 +111,7 @@ internal class Popup: PopupWrapper {
         
         self.addArrangedSubview(self.initDashboard())
         self.addArrangedSubview(self.initChart())
-        self.addArrangedSubview(self.initConnectivityChart())
+        //self.addArrangedSubview(self.initConnectivityChart())
         self.addArrangedSubview(self.initDetails())
         self.addArrangedSubview(self.initPublicIP())
         self.addArrangedSubview(self.initProcesses())
@@ -128,7 +130,8 @@ internal class Popup: PopupWrapper {
     }
     
     private func recalculateHeight() {
-        let h = self.arrangedSubviews.map({ $0.bounds.height }).reduce(0, +)
+        //let h = self.arrangedSubviews.map({ $0.bounds.height }).reduce(0, +)
+        let h = self.arrangedSubviews.filter({ !$0.isHidden }).map({ $0.bounds.height }).reduce(0, +)
         if self.frame.size.height != h {
             self.setFrameSize(NSSize(width: self.frame.width, height: h))
             self.sizeCallback?(self.frame.size)
@@ -240,7 +243,7 @@ internal class Popup: PopupWrapper {
         self.totalDownloadField = totalDownload.2
         
         self.statusField = popupRow(container, n: 0, title: "\(localizedString("Status")):", value: localizedString("Unknown")).1
-        self.connectivityField = popupRow(container, n: 0, title: "\(localizedString("Internet connection")):", value: localizedString("Unknown")).1
+        //self.connectivityField = popupRow(container, n: 0, title: "\(localizedString("Internet connection")):", value: localizedString("Unknown")).1
         
         self.ssidField = popupRow(container, n: 0, title: "\(localizedString("Network")):", value: localizedString("Unknown")).1
         self.standardField = popupRow(container, n: 0, title: "\(localizedString("Standard")):", value: localizedString("Unknown")).1
@@ -308,6 +311,8 @@ internal class Popup: PopupWrapper {
         container.heightAnchor.constraint(equalToConstant: view.bounds.height).isActive = true
         
         self.publicIPStackView = container
+        self.publicIPView = view
+        self.publicIPView?.isHidden = !Store.shared.bool(key: "My_Network_public_ip", defaultValue: false)
         
         return view
     }
@@ -414,7 +419,8 @@ internal class Popup: PopupWrapper {
                 
                 if let view = self.publicIPv4Field, view.stringValue != value.raddr.v4 {
                     if let addr = value.raddr.v4 {
-                        view.stringValue = (value.wifiDetails.countryCode != nil) ? "\(addr) (\(value.wifiDetails.countryCode!))" : addr
+                        //view.stringValue = (value.wifiDetails.countryCode != nil) ? "\(addr) (\(value.wifiDetails.countryCode!))" : addr
+                        view.stringValue = addr
                     } else {
                         view.stringValue = localizedString("Unknown")
                     }
@@ -484,6 +490,11 @@ internal class Popup: PopupWrapper {
             
             self.processesInitialized = true
         })
+    }
+
+    public func togglePublicIP() {
+        self.publicIPView?.isHidden = !Store.shared.bool(key: "My_Network_public_ip", defaultValue: false)
+        self.recalculateHeight()
     }
     
     public func resetConnectivityView() {
