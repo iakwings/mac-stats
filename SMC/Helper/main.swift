@@ -108,7 +108,8 @@ extension Helper {
             completion("missing smc tool")
             return
         }
-        let result = syncShell("\(smc) fan \(id) -m \(mode)")
+        //let result = syncShell("\(smc) fan \(id) -m \(mode)")
+        let result = syncShell("\(shellEscape(smc)) fan \(id) -m \(mode)")
         completion(result)
     }
     
@@ -117,10 +118,16 @@ extension Helper {
             completion("missing smc tool")
             return
         }
-        let result = syncShell("\(smc) fan \(id) -v \(value)")
+        //let result = syncShell("\(smc) fan \(id) -v \(value)")
+        let result = syncShell("\(shellEscape(smc)) fan \(id) -v \(value)")
         completion(result)
     }
     
+    public func shellEscape(_ arg: String) -> String {
+        let washed = arg.replacingOccurrences(of: "\0", with: "")
+        let quoted = "'\(washed.replacingOccurrences(of: "'", with: "'\\''"))'"
+        return quoted
+    }
     public func syncShell(_ args: String) -> String {
         let task = Process()
         task.launchPath = "/bin/sh"

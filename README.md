@@ -7,6 +7,8 @@
 
 macOS system monitor in your menu bar
 
+This app is modified and, unlike the original one, some of its network connection-required functionalities and the frequent opt-out telemetry are disabled.
+
 ## Installation
 
 You can download the latest version [here](https://github.com/iakwings/mac-stats/releases).
@@ -24,7 +26,6 @@ Stats is an application that allows you to monitor your macOS system.
  - Disk utilization
  - Network usage
  - Battery level
- - Fan's control
  - Sensors information (Temperature/Voltage/Power)
  - Bluetooth devices
  - Multiple time zone clock

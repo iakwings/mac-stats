@@ -48,10 +48,11 @@ internal class Popup: PopupWrapper {
     
     private var fanControlState: Bool {
         get {
-            Store.shared.bool(key: "Sensors_fanControl", defaultValue: true)
+            //Store.shared.bool(key: "Sensors_fanControl", defaultValue: true)
+            false
         }
         set {
-            Store.shared.set(key: "Sensors_fanControl", value: newValue)
+            //Store.shared.set(key: "Sensors_fanControl", value: newValue)
         }
     }
     
@@ -252,28 +253,29 @@ internal class Popup: PopupWrapper {
         
         let labelView: NSTextField = TextView()
         labelView.stringValue = localizedString("Fans")
+        labelView.widthAnchor.constraint(equalToConstant: view.bounds.width).isActive = true
         labelView.alignment = .center
         labelView.textColor = .secondaryLabelColor
         labelView.font = NSFont.systemFont(ofSize: 12, weight: .medium)
         
-        let btnContainer = NSView()
-        
-        let button = NSButton()
-        button.frame = CGRect(x: (self.frame.width/3)-20, y: 10, width: 15, height: 15)
-        button.bezelStyle = .regularSquare
-        button.isBordered = false
-        button.imageScaling = NSImageScaling.scaleAxesIndependently
-        button.contentTintColor = .lightGray
-        button.action = #selector(self.toggleFanControl)
-        button.target = self
-        button.toolTip = localizedString("Control")
-        button.image = Bundle(for: Module.self).image(forResource: "tune")!
-        
-        btnContainer.addSubview(button)
+        //let btnContainer = NSView()
+        //
+        //let button = NSButton()
+        //button.frame = CGRect(x: (self.frame.width/3)-20, y: 10, width: 15, height: 15)
+        //button.bezelStyle = .regularSquare
+        //button.isBordered = false
+        //button.imageScaling = NSImageScaling.scaleAxesIndependently
+        //button.contentTintColor = .lightGray
+        //button.action = #selector(self.toggleFanControl)
+        //button.target = self
+        //button.toolTip = localizedString("Control")
+        //button.image = Bundle(for: Module.self).image(forResource: "tune")!
+        //
+        //btnContainer.addSubview(button)
         
         view.addArrangedSubview(NSView())
         view.addArrangedSubview(labelView)
-        view.addArrangedSubview(btnContainer)
+        //view.addArrangedSubview(btnContainer)
         
         return view
     }
@@ -452,7 +454,8 @@ internal class FanView: NSStackView {
     private var fan: Fan
     private var ready: Bool = false
     
-    private var helperView: NSView? = nil
+    //private var helperView: NSView? = nil
+    private let helperView: NSView? = nil
     private var controlView: NSView? = nil
     private var buttonsView: NSView? = nil
     
@@ -498,12 +501,14 @@ internal class FanView: NSStackView {
     public init(_ fan: Fan, width: CGFloat, callback: @escaping (() -> Void)) {
         self.fan = fan
         self.sizeCallback = callback
-        self.controlState = Store.shared.bool(key: "Sensors_fanControl", defaultValue: true)
+        //self.controlState = Store.shared.bool(key: "Sensors_fanControl", defaultValue: true)
+        self.controlState = false
+        Store.shared.set(key: "Sensors_fanControl", value: false)
         
         let inset: CGFloat = 5
         super.init(frame: NSRect(x: 0, y: 0, width: width - (inset*2), height: 0))
         
-        self.helperView = self.noHelper()
+        //self.helperView = self.noHelper()
         self.controlView = self.control()
         self.buttonsView = self.mode()
         
@@ -942,9 +947,9 @@ internal class FanView: NSStackView {
             } else {
                 self.buttonsView?.removeFromSuperview()
                 self.controlView?.removeFromSuperview()
-                if let v = self.helperView {
-                    self.addArrangedSubview(v)
-                }
+                //if let v = self.helperView {
+                //    self.addArrangedSubview(v)
+                //}
             }
         }
         

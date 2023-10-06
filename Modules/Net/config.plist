@@ -42,7 +42,7 @@
 				<string>system</string>
 			</array>
 		</dict>
-		<key>state</key>
+		<key>state-mod-disabled</key>
 		<dict>
 			<key>Default</key>
 			<false/>
