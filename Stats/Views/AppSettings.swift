@@ -125,14 +125,16 @@ class ApplicationSettings: NSStackView {
         statsName.isSelectable = true
         
         let versionNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
-        let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String
+        //let buildNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as! String
+        let forkVersion = Bundle.main.object(forInfoDictionaryKey: "MyForkVersion") as? String ?? "\(versionNumber).x"
         
         let statsVersion: NSTextField = TextView(frame: NSRect(x: 0, y: 0, width: view.frame.width, height: 16))
         statsVersion.alignment = .center
         statsVersion.font = NSFont.systemFont(ofSize: 12, weight: .regular)
-        statsVersion.stringValue = "\(localizedString("Version")) \(versionNumber)"
+        //statsVersion.stringValue = "\(localizedString("Version")) \(versionNumber)"
+        statsVersion.stringValue = "\(localizedString("Version")) \(forkVersion)"
         statsVersion.isSelectable = true
-        statsVersion.toolTip = "\(localizedString("Build number")) \(buildNumber)"
+        //statsVersion.toolTip = "\(localizedString("Build number")) \(buildNumber)"
         
         let updateButton: NSButton = NSButton()
         updateButton.title = localizedString("Check for update")

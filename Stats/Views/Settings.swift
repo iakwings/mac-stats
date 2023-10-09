@@ -437,10 +437,18 @@ private class SidebarView: NSStackView {
         view.spacing = 0
         view.orientation = .horizontal
         
-        view.addArrangedSubview(supportButton(name: "GitHub Sponsors", image: "github", action: #selector(self.openGithub)))
-        view.addArrangedSubview(supportButton(name: "PayPal", image: "paypal", action: #selector(self.openPaypal)))
-        view.addArrangedSubview(supportButton(name: "Ko-fi", image: "ko-fi", action: #selector(self.openKofi)))
-        view.addArrangedSubview(supportButton(name: "Patreon", image: "patreon", action: #selector(self.openPatreon)))
+        //view.addArrangedSubview(supportButton(name: "GitHub Sponsors", image: "github", action: #selector(self.openGithub)))
+        //view.addArrangedSubview(supportButton(name: "PayPal", image: "paypal", action: #selector(self.openPaypal)))
+        //view.addArrangedSubview(supportButton(name: "Ko-fi", image: "ko-fi", action: #selector(self.openKofi)))
+        //view.addArrangedSubview(supportButton(name: "Patreon", image: "patreon", action: #selector(self.openPatreon)))
+
+        let notice = TextView(frame: NSRect(x: 0, y: 0, width: view.frame.width, height: 16))
+        notice.alignment = .center
+        notice.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+        notice.stringValue = "You're using a fork of exelban/stats :]"
+        notice.isSelectable = true
+        notice.toolTip = "https://github.com/iakwings/mac-stats"
+        view.addArrangedSubview(notice)
         
         vc.view = view
         return vc
