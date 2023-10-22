@@ -36,33 +36,35 @@ public struct LaunchAtLogin {
     
     private static var isEnabledLegacy: Bool {
         get {
-            guard let jobs = (LaunchAtLogin.self as DeprecationWarningWorkaround.Type).jobsDict else {
-                return false
-            }
-            let job = jobs.first { $0["Label"] as! String == id }
-            return job?["OnDemand"] as? Bool ?? false
+            //guard let jobs = (LaunchAtLogin.self as DeprecationWarningWorkaround.Type).jobsDict else {
+            //    return false
+            //}
+            //let job = jobs.first { $0["Label"] as! String == id }
+            //return job?["OnDemand"] as? Bool ?? false
+            return false
         }
         set {
-            SMLoginItemSetEnabled(id as CFString, newValue)
+            //SMLoginItemSetEnabled(id as CFString, newValue)
         }
     }
     
     @available(macOS 13, *)
     private static var isEnabledNext: Bool {
-        get { SMAppService.mainApp.status == .enabled }
+        //get { SMAppService.mainApp.status == .enabled }
+        get { false }
         set {
-            do {
-                if newValue {
-                    if SMAppService.mainApp.status == .enabled {
-                        try? SMAppService.mainApp.unregister()
-                    }
-                    try SMAppService.mainApp.register()
-                } else {
-                    try SMAppService.mainApp.unregister()
-                }
-            } catch {
-                print("failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
-            }
+            //do {
+            //    if newValue {
+            //        if SMAppService.mainApp.status == .enabled {
+            //            try? SMAppService.mainApp.unregister()
+            //        }
+            //        try SMAppService.mainApp.register()
+            //    } else {
+            //        try SMAppService.mainApp.unregister()
+            //    }
+            //} catch {
+            //    print("failed to \(newValue ? "enable" : "disable") launch at login: \(error.localizedDescription)")
+            //}
         }
     }
     
@@ -74,7 +76,7 @@ public struct LaunchAtLogin {
         Store.shared.set(key: "LaunchAtLoginNext", value: true)
         isEnabledNext = isEnabledLegacy
         isEnabledLegacy = false
-        try? SMAppService.loginItem(identifier: id).unregister()
+        //try? SMAppService.loginItem(identifier: id).unregister()
     }
 }
 
