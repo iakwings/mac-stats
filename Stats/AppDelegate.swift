@@ -21,7 +21,8 @@ import GPU
 import Bluetooth
 import Clock
 
-let updater = Updater(github: "exelban/stats", url: "https://api.serhiy.io/v1/stats/release/latest")
+//let updater = Updater(github: "exelban/stats", url: "https://api.serhiy.io/v1/stats/release/latest")
+let updater = Updater(github: "iakwings/mac-stats", url: "https://api.github.com/repos/iakwings/mac-stats/releases/latest")
 var modules: [Module] = [
     CPU(),
     GPU(),
@@ -33,13 +34,13 @@ var modules: [Module] = [
     Bluetooth(),
     Clock()
 ]
-let telemetry: Telemetry = Telemetry(&modules)
+//let telemetry: Telemetry = Telemetry(&modules)
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     internal let settingsWindow: SettingsWindow = SettingsWindow()
     internal let updateWindow: UpdateWindow = UpdateWindow()
-    internal let setupWindow: SetupWindow = SetupWindow()
+    //internal let setupWindow: SetupWindow = SetupWindow()
     internal let updateActivity = NSBackgroundActivityScheduler(identifier: "eu.exelban.Stats.updateCheck")
     internal var clickInNotification: Bool = false
     internal var menuBarItem: NSStatusItem? = nil

@@ -50,8 +50,12 @@ internal class Settings: NSStackView, Settings_v {
         
         self.updateIntervalValue = Store.shared.int(key: "\(self.title)_updateInterval", defaultValue: self.updateIntervalValue)
         self.hidState = Store.shared.bool(key: "\(self.title)_hid", defaultValue: self.hidState)
-        self.fanSpeedState = Store.shared.bool(key: "\(self.title)_speed", defaultValue: self.fanSpeedState)
-        self.fansSyncState = Store.shared.bool(key: "\(self.title)_fansSync", defaultValue: self.fansSyncState)
+        //self.fanSpeedState = Store.shared.bool(key: "\(self.title)_speed", defaultValue: self.fanSpeedState)
+        //self.fansSyncState = Store.shared.bool(key: "\(self.title)_fansSync", defaultValue: self.fansSyncState)
+        Store.shared.set(key: "\(self.title)_speed", value: false)
+        Store.shared.set(key: "\(self.title)_fansSync", value: false)
+        self.fanSpeedState = false
+        self.fansSyncState = false
         self.unknownSensorsState = Store.shared.bool(key: "\(self.title)_unknown", defaultValue: self.unknownSensorsState)
         self.fanValueState = FanValue(rawValue: Store.shared.string(key: "\(self.title)_fanValue", defaultValue: self.fanValueState.rawValue)) ?? .percentage
     }
@@ -78,17 +82,17 @@ internal class Settings: NSStackView, Settings_v {
             selected: "\(self.updateIntervalValue) sec"
         ))
         
-        self.addArrangedSubview(toggleSettingRow(
-            title: localizedString("Save the fan speed"),
-            action: #selector(toggleSpeedState),
-            state: self.fanSpeedState
-        ))
+        //self.addArrangedSubview(toggleSettingRow(
+        //    title: localizedString("Save the fan speed"),
+        //    action: #selector(toggleSpeedState),
+        //    state: self.fanSpeedState
+        //))
         
-        self.addArrangedSubview(toggleSettingRow(
-            title: localizedString("Synchronize fan's control"),
-            action: #selector(toggleFansSync),
-            state: self.fansSyncState
-        ))
+        //self.addArrangedSubview(toggleSettingRow(
+        //    title: localizedString("Synchronize fan's control"),
+        //    action: #selector(toggleFansSync),
+        //    state: self.fansSyncState
+        //))
         
         self.addArrangedSubview(selectSettingsRow(
             title: localizedString("Fan value"),

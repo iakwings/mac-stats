@@ -15,7 +15,8 @@ public class Tachometer: WidgetWrapper {
     private var labelState: Bool = false
     private var monochromeState: Bool = false
     
-    private var chart: TachometerGraphView = TachometerGraphView(
+    //private var chart: TachometerGraphView = TachometerGraphView(
+    public var chart: TachometerGraphView = TachometerGraphView(
         frame: NSRect(
             x: Constants.Widget.margin.x,
             y: Constants.Widget.margin.y,

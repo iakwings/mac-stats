@@ -66,7 +66,14 @@ extension CWSecurity: CustomStringConvertible {
         case .wpa3Personal:       return "WPA3 Personal"
         case .wpa3Enterprise:     return "WPA3 Enterprise"
         case .wpa3Transition:     return "WPA3 Transition"
-        default:                  return "unknown"
+        //default:                  return "unknown"
+        // https://docs.swift.org/swift-book/ReferenceManual/Statements.html
+        @unknown default:
+            switch self.rawValue {
+                case 14: return "OWE" // .OWE
+                case 15: return "OWE Transition" // .oweTransition
+                default: return "unknown"
+            }
         }
     }
 }
@@ -76,9 +83,14 @@ extension CWChannelBand: CustomStringConvertible {
         switch(self) {
         case .band2GHz:     return "2 GHz"
         case .band5GHz:     return "5 GHz"
-        case .band6GHz:     return "6 GHz"
+        //case .band6GHz:     return "6 GHz"
         case .bandUnknown:  return "unknown"
-        @unknown default:   return "unknown"
+        //@unknown default:   return "unknown"
+        @unknown default:
+            switch self.rawValue {
+                case 3: return "6 GHz"
+                default: return "unknown"
+            }
         }
     }
 }
@@ -300,9 +312,9 @@ internal class UsageReader: Reader<Network_Usage> {
     public func getDetails() {
         self.usage.reset()
         
-        DispatchQueue.global(qos: .background).async {
-            self.getPublicIP()
-        }
+        //DispatchQueue.global(qos: .background).async {
+        //    self.getPublicIP()
+        //}
         
         guard self.interfaceID != "" else {
             return
@@ -364,7 +376,9 @@ internal class UsageReader: Reader<Network_Usage> {
         return String(cString: ip)
     }
     
+    private var cancelGetPublicIP : () -> Void = {}
     private func getPublicIP() {
+if false {
         struct Addr_s: Decodable {
             let ipv4: String?
             let ipv6: String?
@@ -388,6 +402,62 @@ internal class UsageReader: Reader<Network_Usage> {
                 }
             }
         }
+}
+
+        struct PublicIP: Decodable {
+            let ip: String?
+        }
+        self.cancelGetPublicIP()
+        self.usage.raddr.v4 = "..."
+        self.usage.raddr.v6 = "..."
+        let urlIPv4 = URL(string: "https://api4.ipify.org/?format=json")!
+        let taskIPv4 = urlIPv4.myAsyncHTTPData { [weak self] data, error in
+            if error == nil,
+                let json = data,
+                let addr = try? JSONDecoder().decode(PublicIP.self, from: json),
+                let ip = addr.ip, self?.isIPv4(ip) ?? false {
+                self?.usage.raddr.v4 = ip
+            } else if let error = error as? NSError,
+                error.domain == NSURLErrorDomain,
+                error.code == NSURLErrorCancelled {
+                // noop
+            } else {
+                if let error = error, let log = self?.log {
+                    debug("MOD: \(error)", log: log)
+                }
+                self?.usage.raddr.v4 = nil
+            }
+        }
+        let urlIPv6 = URL(string: "https://api6.ipify.org/?format=json")!
+        let taskIPv6 = urlIPv6.myAsyncHTTPData { [weak self] data, error in
+            if error == nil,
+                let json = data,
+                let addr = try? JSONDecoder().decode(PublicIP.self, from: json),
+                let ip = addr.ip, self?.isIPv6(ip) ?? false {
+                self?.usage.raddr.v6 = ip
+            } else if let error = error as? NSError,
+                error.domain == NSURLErrorDomain,
+                error.code == NSURLErrorCancelled {
+                // noop
+            } else {
+                if let error = error, let log = self?.log {
+                    debug("MOD: \(error)", log: log)
+                }
+                self?.usage.raddr.v6 = nil
+            }
+        }
+        let resetIPs = DispatchWorkItem(block: { [weak self] in
+            self?.usage.raddr.v4 = nil
+            self?.usage.raddr.v6 = nil
+        })
+        self.cancelGetPublicIP = {
+            taskIPv4.cancel()
+            taskIPv6.cancel()
+            resetIPs.cancel()
+        }
+        DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + (60.0 * 15), execute: resetIPs)
+        taskIPv4.resume()
+        taskIPv6.resume()
     }
     
     private func getBytesInfo(_ pointer: UnsafeMutablePointer<ifaddrs>) -> (upload: Int64, download: Int64)? {
@@ -402,13 +472,43 @@ internal class UsageReader: Reader<Network_Usage> {
     }
     
     private func isIPv4(_ ip: String) -> Bool {
-        let arr = ip.split(separator: ".").compactMap{ Int($0) }
-        return arr.count == 4 && arr.filter{ $0 >= 0 && $0 < 256}.count == 4
+        //let arr = ip.split(separator: ".").compactMap{ Int($0) }
+        //return arr.count == 4 && arr.filter{ $0 >= 0 && $0 < 256}.count == 4
+        let x = "(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])"
+        let s = "^\(x)(?:[.]\(x)){3}$"
+        do {
+            let regex = try NSRegularExpression(pattern: s)
+            let range = NSRange(ip.startIndex..<ip.endIndex, in: ip)
+            if regex.firstMatch(in: ip, range: range) != nil {
+                return true
+            }
+            debug("MOD: not IPv4: \(ip)", log: self.log)
+        } catch let err {
+            debug("MOD: \(err)", log: self.log)
+        }
+        return false
+    }
+
+    // https://datatracker.ietf.org/doc/html/rfc4291#section-2.2
+    private func isIPv6(_ ip: String) -> Bool {
+        let x = "(?:[0-9a-fA-F]{1,4})"
+        let s = "^(?!:[^:]|.*[^:]:$|.*?::(?:.*?::|:))(?:(?:\(x)?[:]){1,7}(?:\(x)|[:]))$"
+        do {
+            let regex = try NSRegularExpression(pattern: s)
+            let range = NSRange(ip.startIndex..<ip.endIndex, in: ip)
+            if regex.firstMatch(in: ip, range: range) != nil {
+                return true
+            }
+            debug("MOD: not IPv6: \(ip)", log: self.log)
+        } catch let err {
+            debug("MOD: \(err)", log: self.log)
+        }
+        return false
     }
     
     @objc func refreshPublicIP() {
-        self.usage.raddr.v4 = nil
-        self.usage.raddr.v6 = nil
+        //self.usage.raddr.v4 = nil
+        //self.usage.raddr.v6 = nil
         
         DispatchQueue.global(qos: .background).async {
             self.getPublicIP()
@@ -571,7 +671,8 @@ internal class ConnectivityReader: Reader<Network_Connectivity> {
     private var fingerprint: UUID = UUID()
     
     private var host: String {
-        Store.shared.string(key: "Network_ICMPHost", defaultValue: "1.1.1.1")
+        //Store.shared.string(key: "Network_ICMPHost", defaultValue: "1.1.1.1")
+        return ""
     }
     private var lastHost: String = ""
     private var addr: Data? = nil
