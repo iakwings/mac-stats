@@ -46,7 +46,8 @@ class ApplicationSettings: NSStackView {
     private let updateWindow: UpdateWindow = UpdateWindow()
     private let moduleSelector: ModuleSelectorView = ModuleSelectorView()
     private var updateSelector: NSPopUpButton?
-    private var startAtLoginBtn: NSButton?
+    //private var startAtLoginBtn: NSButton?
+    private let startAtLoginBtn: NSButton? = nil
     private var uninstallHelperButton: NSButton?
     private var buttonsContainer: NSStackView?
     private var telemetryBtn: NSButton?
@@ -200,12 +201,12 @@ class ApplicationSettings: NSStackView {
             state: Store.shared.bool(key: "dockIcon", defaultValue: false),
             text: localizedString("Show icon in dock")
         )])
-        self.startAtLoginBtn = self.toggleView(
-            action: #selector(self.toggleLaunchAtLogin),
-            state: LaunchAtLogin.isEnabled,
-            text: localizedString("Start at login")
-        )
-        grid.addRow(with: [NSGridCell.emptyContentView, self.startAtLoginBtn!])
+        //self.startAtLoginBtn = self.toggleView(
+        //    action: #selector(self.toggleLaunchAtLogin),
+        //    state: LaunchAtLogin.isEnabled,
+        //    text: localizedString("Start at login")
+        //)
+        //grid.addRow(with: [NSGridCell.emptyContentView, self.startAtLoginBtn!])
         
         self.telemetryBtn = self.toggleView(
             action: #selector(self.toggleTelemetry),
