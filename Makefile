@@ -8,6 +8,22 @@ ZIP_PATH = "$(BUILD_PATH)/$(APP).zip"
 .SILENT: archive notarize sign prepare-dmg prepare-dSYM clean next-version check history disk smc
 .PHONY: build archive notarize sign prepare-dmg prepare-dSYM clean next-version check history open smc
 
+all:
+	exit 1
+
+app:
+	xcodebuild \
+		-scheme $(APP) \
+		-destination 'platform=macOS,arch=x86_64' \
+		-configuration Release \
+		-archivePath $(BUILD_PATH)/$(APP).xcarchive \
+		CODE_SIGN_IDENTITY=- archive
+	xcodebuild -exportArchive \
+		-exportOptionsPlist $(PWD)/exportOptions.plist \
+		-archivePath $(BUILD_PATH)/$(APP).xcarchive \
+		-exportPath $(BUILD_PATH)
+	# codesign --force --deep --sign - --timestamp=none $(PWD)/build/Stats.app
+
 build: clean next-version archive notarize sign prepare-dmg prepare-dSYM open
 
 # --- MAIN WORLFLOW FUNCTIONS --- #
@@ -104,3 +120,5 @@ open:
 smc:
 	$(MAKE) --directory=./smc
 	open $(PWD)/smc
+
+.PHONEY: all app
