@@ -567,6 +567,32 @@ extension NSTextView {
     }
 }
 
+public extension URL {
+    // The callback function is called on a different Grand Central Dispatch queue than the one that created the task.
+    func myAsyncHTTPData(callback: @escaping (_ data: Data?, _ error: Error?) -> Void) -> URLSessionTask {
+        var request = URLRequest(url: self, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 60.0 * 3)
+        // https://curl.se/docs/releases.html
+        let x = 7
+        let y = UInt8.random(in: 1...88)
+        let z = UInt8.random(in: 0...1)
+        let ua = "curl/\(x).\(y).\(z)"
+        request.setValue("*/*", forHTTPHeaderField: "Accept")
+        request.setValue("en-US,en;q=0.5", forHTTPHeaderField: "Accept-Language")
+        request.setValue(ua, forHTTPHeaderField: "User-Agent")
+        request.httpShouldHandleCookies = false
+
+        return URLSession.shared.dataTask(with: request) { data, response, error in
+            if error == nil,
+                let httpResponse = response as? HTTPURLResponse,
+                (200...299).contains(httpResponse.statusCode) {
+                callback(data, nil)
+            } else {
+                callback(nil, error)
+            }
+        }
+    }
+}
+
 public extension Data {
     var socketAddress: sockaddr {
         return withUnsafeBytes { $0.load(as: sockaddr.self) }

@@ -36,9 +36,15 @@ extension AppDelegate {
         
         if let mountIndex = args.firstIndex(of: "--mount-path") {
             if args.indices.contains(mountIndex+1) {
-                let mountPath = args[mountIndex+1]
-                asyncShell("/usr/bin/hdiutil detach \(mountPath)")
-                asyncShell("/bin/rm -rf \(mountPath)")
+                //let mountPath = args[mountIndex+1]
+                //asyncShell("/usr/bin/hdiutil detach \(mountPath)")
+                //asyncShell("/bin/rm -rf \(mountPath)")
+                var mountPath = args[mountIndex+1]
+                if mountPath != "" && !mountPath.hasPrefix("/") {
+                    mountPath = "./\(mountPath)"
+                }
+                asyncShell("/usr/bin/hdiutil detach \(shellEscape(mountPath))")
+                asyncShell("/bin/rm -rf -- \(shellEscape(mountPath))")
                 
                 debug("DMG was unmounted and mountPath deleted")
             }
@@ -46,7 +52,8 @@ extension AppDelegate {
         
         if let dmgIndex = args.firstIndex(of: "--dmg-path") {
             if args.indices.contains(dmgIndex+1) {
-                asyncShell("/bin/rm -rf \(args[dmgIndex+1])")
+                //asyncShell("/bin/rm -rf \(args[dmgIndex+1])")
+                asyncShell("/bin/rm -rf -- \(shellEscape(args[dmgIndex+1]))")
                 
                 debug("DMG was deleted")
             }
@@ -56,9 +63,10 @@ extension AppDelegate {
     internal func parseVersion() {
         let key = "version"
         let currentVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
-        guard let updateInterval = AppUpdateInterval(rawValue: Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)) else {
-            return
-        }
+        //guard let updateInterval = AppUpdateInterval(rawValue: Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)) else {
+        //    return
+        //}
+        let updateInterval = AppUpdateInterval.never
         
         if !Store.shared.exist(key: key) {
             Store.shared.reset()
@@ -93,13 +101,19 @@ extension AppDelegate {
         } else {
             LaunchAtLogin.migrate()
         }
+
+        Store.shared.set(key: "telemetry", value: false)
+        Store.shared.remove("telemetry_id")
         
         if Store.shared.exist(key: "dockIcon") {
             let dockIconStatus = Store.shared.bool(key: "dockIcon", defaultValue: false) ? NSApplication.ActivationPolicy.regular : NSApplication.ActivationPolicy.accessory
             NSApp.setActivationPolicy(dockIconStatus)
         }
         
-        if let updateInterval = AppUpdateInterval(rawValue: Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)) {
+        //if let updateInterval = AppUpdateInterval(rawValue: Store.shared.string(key: "update-interval", defaultValue: AppUpdateInterval.silent.rawValue)) {
+        if false, let updateInterval = AppUpdateInterval(rawValue: AppUpdateInterval.never.rawValue) {
+            Store.shared.set(key: "update-interval", value: AppUpdateInterval.never.rawValue)
+
             self.updateActivity.invalidate()
             self.updateActivity.repeats = true
             
@@ -133,15 +147,20 @@ extension AppDelegate {
         
         debug("showing the setup window")
         
-        self.setupWindow.show()
-        self.setupWindow.finishHandler = {
-            debug("setup is finished, starting the app")
-            completion()
-        }
+        //self.setupWindow.show()
+        //self.setupWindow.finishHandler = {
+        //    debug("setup is finished, starting the app")
+        //    completion()
+        //}
         Store.shared.set(key: "setupProcess", value: true)
+        completion()
     }
     
     internal func checkForNewVersion(silent: Bool = false) {
+        if true {
+            return
+        }
+
         updater.check { result, error in
             if error != nil {
                 debug("error updater.check(): \(error!.localizedDescription)")

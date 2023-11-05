@@ -278,9 +278,10 @@ private class UpdateView: NSView {
     }
     
     @objc private func changelog(_ sender: Any) {
-        if let version = self.version {
-            NSWorkspace.shared.open(URL(string: "https://github.com/exelban/stats/releases/tag/\(version.latest)")!)
-        }
+        //if let version = self.version {
+        //    NSWorkspace.shared.open(URL(string: "https://github.com/exelban/stats/releases/tag/\(version.latest)")!)
+        //}
+        NSWorkspace.shared.open(URL(string: "https://github.com/iakwings/mac-stats/releases")!)
     }
     
     @objc private func install(_ sender: Any) {
