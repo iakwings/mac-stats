@@ -19,8 +19,10 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
     private var usageReset: String = AppUpdateInterval.atStart.rawValue
     private var VPNModeState: Bool = false
     private var widgetActivationThreshold: Int = 0
-    private var ICMPHost: String = "1.1.1.1"
-    private var publicIPRefreshInterval: String = "never"
+    //private var ICMPHost: String = "1.1.1.1"
+    private let ICMPHost: String = ""
+    //private var publicIPRefreshInterval: String = "never"
+    private let publicIPRefreshInterval: String = "never"
     private var baseValue: String = "byte"
     
     public var callback: (() -> Void) = {}
@@ -49,8 +51,11 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
         self.usageReset = Store.shared.string(key: "\(self.title)_usageReset", defaultValue: self.usageReset)
         self.VPNModeState = Store.shared.bool(key: "\(self.title)_VPNMode", defaultValue: self.VPNModeState)
         self.widgetActivationThreshold = Store.shared.int(key: "\(self.title)_widgetActivationThreshold", defaultValue: self.widgetActivationThreshold)
-        self.ICMPHost = Store.shared.string(key: "\(self.title)_ICMPHost", defaultValue: self.ICMPHost)
-        self.publicIPRefreshInterval = Store.shared.string(key: "\(self.title)_publicIPRefreshInterval", defaultValue: self.publicIPRefreshInterval)
+        //self.ICMPHost = Store.shared.string(key: "\(self.title)_ICMPHost", defaultValue: self.ICMPHost)
+        //self.publicIPRefreshInterval = Store.shared.string(key: "\(self.title)_publicIPRefreshInterval", defaultValue: self.publicIPRefreshInterval)
+        Store.shared.set(key: "\(self.title)_ICMPHost", value: self.ICMPHost)
+        Store.shared.set(key: "\(self.title)_publicIPRefreshInterval", value: self.publicIPRefreshInterval)
+        self.publicIPState = Store.shared.bool(key: "My_Network_public_ip", defaultValue: self.publicIPState)
         self.baseValue = Store.shared.string(key: "\(self.title)_base", defaultValue: self.baseValue)
         
         super.init(frame: NSRect(x: 0, y: 0, width: 0, height: 0))
@@ -110,11 +115,16 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
             selected: self.baseValue
         ))
         
-        self.addArrangedSubview(selectSettingsRow(
-            title: localizedString("Auto-refresh public IP address"),
-            action: #selector(toggleRefreshIPInterval),
-            items: PublicIPAddressRefreshIntervals,
-            selected: self.publicIPRefreshInterval
+        //self.addArrangedSubview(selectSettingsRow(
+        //    title: localizedString("Auto-refresh public IP address"),
+        //    action: #selector(toggleRefreshIPInterval),
+        //    items: PublicIPAddressRefreshIntervals,
+        //    selected: self.publicIPRefreshInterval
+        //))
+        self.addArrangedSubview(toggleSettingRow(
+            title: localizedString("Public IP") + " (ipify.org)",
+            action: #selector(togglePublicIP),
+            state: self.publicIPState
         ))
         
         self.addArrangedSubview(self.interfaceSelector())
@@ -127,12 +137,12 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
             ))
         }
         
-        self.addArrangedSubview(fieldSettingRow(self,
-            title: localizedString("Connectivity host (ICMP)"),
-            value: self.ICMPHost,
-            placeholder: localizedString("Leave empty to disable the check"),
-            width: 220
-        ))
+        //self.addArrangedSubview(fieldSettingRow(self,
+        //    title: localizedString("Connectivity host (ICMP)"),
+        //    value: self.ICMPHost,
+        //    placeholder: localizedString("Leave empty to disable the check"),
+        //    width: 220
+        //))
     }
     
     private func interfaceSelector() -> NSView {
@@ -294,15 +304,23 @@ internal class Settings: NSStackView, Settings_v, NSTextFieldDelegate {
     
     func controlTextDidChange(_ notification: Notification) {
         if let textField = notification.object as? NSTextField {
-            self.ICMPHost = textField.stringValue
+            //self.ICMPHost = textField.stringValue
             Store.shared.set(key: "\(self.title)_ICMPHost", value: self.ICMPHost)
             self.ICMPHostCallback(self.ICMPHost.isEmpty)
         }
     }
+
+    private var publicIPState: Bool = false
+    public var togglePublicIPCallback: (() -> Void) = {}
+    @objc func togglePublicIP(_ sender: NSControl) {
+        self.publicIPState = controlState(sender)
+        Store.shared.set(key: "My_Network_public_ip", value: self.publicIPState)
+        self.togglePublicIPCallback()
+    }
     
     @objc private func toggleRefreshIPInterval(_ sender: NSMenuItem) {
         guard let key = sender.representedObject as? String else { return }
-        self.publicIPRefreshInterval = key
+        //self.publicIPRefreshInterval = key
         Store.shared.set(key: "\(self.title)_publicIPRefreshInterval", value: self.publicIPRefreshInterval)
         self.publicIPRefreshIntervalCallback()
     }
