@@ -438,23 +438,31 @@ private class SidebarView: NSStackView {
         view.edgeInsets = NSEdgeInsets(top: 0, left: 8, bottom: 0, right: 0)
         view.orientation = .horizontal
         
-        let github = SupportButtonView(name: "GitHub Sponsors", image: "github", action: {
-            NSWorkspace.shared.open(URL(string: "https://github.com/sponsors/exelban")!)
-        })
-        let paypal = SupportButtonView(name: "PayPal", image: "paypal", action: {
-            NSWorkspace.shared.open(URL(string: "https://www.paypal.com/donate?hosted_button_id=3DS5JHDBATMTC")!)
-        })
-        let koFi = SupportButtonView(name: "Ko-fi", image: "ko-fi", action: {
-            NSWorkspace.shared.open(URL(string: "https://ko-fi.com/exelban")!)
-        })
-        let patreon = SupportButtonView(name: "Patreon", image: "patreon", action: {
-            NSWorkspace.shared.open(URL(string: "https://patreon.com/exelban")!)
-        })
-        
-        view.addArrangedSubview(github)
-        view.addArrangedSubview(paypal)
-        view.addArrangedSubview(koFi)
-        view.addArrangedSubview(patreon)
+        //let github = SupportButtonView(name: "GitHub Sponsors", image: "github", action: {
+        //    NSWorkspace.shared.open(URL(string: "https://github.com/sponsors/exelban")!)
+        //})
+        //let paypal = SupportButtonView(name: "PayPal", image: "paypal", action: {
+        //    NSWorkspace.shared.open(URL(string: "https://www.paypal.com/donate?hosted_button_id=3DS5JHDBATMTC")!)
+        //})
+        //let koFi = SupportButtonView(name: "Ko-fi", image: "ko-fi", action: {
+        //    NSWorkspace.shared.open(URL(string: "https://ko-fi.com/exelban")!)
+        //})
+        //let patreon = SupportButtonView(name: "Patreon", image: "patreon", action: {
+        //    NSWorkspace.shared.open(URL(string: "https://patreon.com/exelban")!)
+        //})
+        //
+        //view.addArrangedSubview(github)
+        //view.addArrangedSubview(paypal)
+        //view.addArrangedSubview(koFi)
+        //view.addArrangedSubview(patreon)
+
+        let notice = TextView(frame: NSRect(x: 0, y: 0, width: view.frame.width, height: 16))
+        notice.alignment = .center
+        notice.font = NSFont.systemFont(ofSize: 12, weight: .regular)
+        notice.stringValue = "You're using a fork of exelban/stats :]"
+        notice.isSelectable = true
+        notice.toolTip = "https://github.com/iakwings/mac-stats"
+        view.addArrangedSubview(notice)
         
         vc.view = view
         return vc
