@@ -13,9 +13,11 @@ import Cocoa
 
 public class PieChart: WidgetWrapper {
     private var labelState: Bool = false
+    private var frameState: Bool = false
     private var monochromeState: Bool = false
     
-    private var chart: PieChartView = PieChartView(
+    //private var chart: PieChartView = PieChartView(
+    public var chart: MyPieChartView = MyPieChartView(
         frame: NSRect(
             x: Constants.Widget.margin.x,
             y: Constants.Widget.margin.y,
@@ -65,6 +67,9 @@ public class PieChart: WidgetWrapper {
         } else {
             self.labelState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_label", defaultValue: self.labelState)
             self.monochromeState = Store.shared.bool(key: "\(self.title)_\(self.type.rawValue)_monochrome", defaultValue: self.monochromeState)
+
+            self.frameState = Store.shared.bool(key: "My_RAM_pie_chart_frame", defaultValue: self.frameState)
+            self.chart.framed = self.frameState
         }
         
         self.draw()
@@ -113,6 +118,12 @@ public class PieChart: WidgetWrapper {
             action: #selector(self.toggleLabel),
             state: self.labelState
         ))
+
+        view.addArrangedSubview(toggleSettingRow(
+            title: localizedString("Frame"),
+            action: #selector(self.toggleFrame),
+            state: self.frameState
+        ))
         
         view.addArrangedSubview(toggleSettingRow(
             title: localizedString("Monochrome accent"),
@@ -132,9 +143,37 @@ public class PieChart: WidgetWrapper {
         self.chart.setFrameOrigin(NSPoint(x: x, y: 0))
         self.setWidth(self.labelState ? self.size+x : self.size)
     }
+
+    @objc private func toggleFrame(_ sender: NSControl) {
+        self.frameState = controlState(sender)
+        Store.shared.set(key: "My_RAM_pie_chart_frame", value: self.frameState)
+        self.chart.framed = self.frameState
+        self.display()
+    }
     
     @objc private func toggleMonochrome(_ sender: NSControl) {
         self.monochromeState = controlState(sender)
         Store.shared.set(key: "\(self.title)_\(self.type.rawValue)_monochrome", value: self.monochromeState)
+    }
+}
+
+public class MyPieChartView: PieChartView {
+    public var framed: Bool = false
+
+    public override func draw(_ rect: CGRect) {
+        super.draw(rect)
+
+        if self.framed, let context = NSGraphicsContext.current?.cgContext {
+            let lineWidth = 1.0 / (NSScreen.main?.backingScaleFactor ?? 1) * 1.2
+            let offset = lineWidth / 2
+            let center = CGPoint(x: self.frame.width / 2, y: self.frame.height / 2)
+            let radius = min(self.frame.width, self.frame.height) / 2 - offset
+            let color = isDarkMode ? NSColor.white : NSColor.black
+            context.setShouldAntialias(true)
+            context.setStrokeColor(color.cgColor)
+            context.addArc(center: center, radius: radius, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: false)
+            context.setLineWidth(lineWidth)
+            context.strokePath()
+        }
     }
 }
