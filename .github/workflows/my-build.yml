@@ -1,0 +1,98 @@
+# https://github.com/actions/cache
+# https://github.com/actions/checkout
+# https://github.com/ncipollo/release-action
+# https://docs.github.com/actions/using-workflows
+# https://docs.github.com/actions/learn-github-actions/contexts
+# https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+
+name: GitHub Continuous Integration
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }} ${{ github.ref }} ${{ github.job }}
+  cancel-in-progress: true
+
+env:
+  IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') }}
+
+jobs:
+  build:
+    runs-on: macos-13  # macos-latest = macos-12
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # history, branches, TAGS
+          persist-credentials: false
+
+      - name: Environment Variables
+        run: |
+          set -- $(git tag --list 'v*.*.*.*' --sort=version:refname | tail -n2)
+          if [ '' = "${1-}" ] || [ ${{github.ref_name}} != "${2-}" ]; then
+            set -- v2.7.5 ${{github.ref_name}}
+          fi
+          printf 'MY_PREV_VERSION=%s\n' "$1" >>"${GITHUB_ENV}"
+          printf 'MY_FORK_VERSION=%s\n' "$2" >>"${GITHUB_ENV}"
+          printf 'MY_BASE_VERSION=%s\n' "${2%.*}" >>"${GITHUB_ENV}"
+
+      - name: Compile application
+        run: |
+          /usr/libexec/PlistBuddy -c "Add :MyForkVersion string \"${MY_FORK_VERSION#v}\"" \
+                                     './Stats/Supporting Files/Info.plist'
+          make app
+
+      - name: Download mkdmg
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+          repository: iakwings/mkdmg
+          path: mkdmg
+
+      - name: Create disk image
+        run: |
+          mkdir -p ./disk
+          mv ./build/Stats.app ./disk/
+          ln -sf /Applications ./disk/
+          ./mkdmg/mkdmg --volname=Stats-"${MY_FORK_VERSION}" \
+                        --volicon=./disk/Stats.app/Contents/Resources/AppIcon.icns \
+                        ./disk ./Stats-"${MY_FORK_VERSION}".dmg
+          SHA256SUM="$(openssl dgst -sha256 ./Stats-"${MY_FORK_VERSION}".dmg)"
+          printf 'MY_SHA256SUM=%s\n' "${SHA256SUM##*[= ]}" >>"${GITHUB_ENV}"
+          printf '::group::sha256sum\n'
+          printf '%s\n' "${SHA256SUM}"
+          printf '::endgroup::\n'
+
+      - name: Create GitHub release
+        if: success() && env.IS_RELEASE == 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ github.token }}
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          removeArtifacts: true
+          replacesArtifacts: true
+          artifacts: ${{github.workspace}}/Stats-${{env.MY_FORK_VERSION}}.dmg
+          artifactContentType: raw
+          tag: ${{env.MY_FORK_VERSION}}
+          # https://github.com/exelban/stats/compare/v2.7.5..iakwings:mac-stats:no-telemetry-spy
+          body: |
+            **Changes**:
+
+            *   Commit history: [${{env.MY_FORK_VERSION}}](https://github.com/${{github.repository}}/commits/${{env.MY_FORK_VERSION}})
+            *   Changes between [${{env.MY_BASE_VERSION}}..${{env.MY_FORK_VERSION}}](https://github.com/${{github.repository}}/compare/${{env.MY_BASE_VERSION}}..${{env.MY_FORK_VERSION}})
+            *   Changes between [${{env.MY_PREV_VERSION}}..${{env.MY_FORK_VERSION}}](https://github.com/${{github.repository}}/compare/${{env.MY_PREV_VERSION}}..${{env.MY_FORK_VERSION}})
+            *   Changes between [v2.7.5..${{env.MY_FORK_VERSION}}](https://github.com/${{github.repository}}/compare/v2.7.5..${{env.MY_FORK_VERSION}})
+
+            **Download**:
+
+            * [Stats-${{env.MY_FORK_VERSION}}.dmg](https://github.com/${{github.repository}}/releases/download/${{env.MY_FORK_VERSION}}/Stats-${{env.MY_FORK_VERSION}}.dmg)
+            * [Stats-${{env.MY_FORK_VERSION}}.dmg.asc](https://github.com/${{github.repository}}/releases/download/${{env.MY_FORK_VERSION}}/Stats-${{env.MY_FORK_VERSION}}.dmg.asc) (uploaded later)
+
+            **SHA256SUM**: `${{env.MY_SHA256SUM}}`
+          generateReleaseNotes: false
+          omitNameDuringUpdate: false
+          omitBodyDuringUpdate: false
+          omitPrereleaseDuringUpdate: false
+          draft: false
+          prerelease: false

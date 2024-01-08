@@ -1,22 +1,16 @@
 # Stats
 
-<a href="https://github.com/exelban/stats/releases"><p align="center"><img src="https://github.com/exelban/stats/raw/master/Stats/Supporting%20Files/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="120"></p></a>
+<a href="https://github.com/iakwings/mac-stats/releases"><p align="center"><img src="Stats/Supporting%20Files/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" width="120"></p></a>
 
-[![Stats](https://serhiy.s3.eu-central-1.amazonaws.com/Github_repo/stats/menus%3Fv2.3.2.png?v1)](https://github.com/exelban/stats/releases)
-[![Stats](https://serhiy.s3.eu-central-1.amazonaws.com/Github_repo/stats/popups%3Fv2.3.2.png?v3)](https://github.com/exelban/stats/releases)
+![Menus in v2.3.2](demo/menus-v2.3.2.png)
+![Popups in v2.3.2](demo/popups-v2.3.2.png)
 
 macOS system monitor in your menu bar
 
 ## Installation
-### Manual
-You can download the latest version [here](https://github.com/exelban/stats/releases/latest/download/Stats.dmg).
-This will download a file called `Stats.dmg`. Open it and move the app to the application folder.
 
-### Homebrew
-To install it using Homebrew, open the Terminal app and type:
-```bash
-brew install stats
-```
+You can download the latest version [here](https://github.com/iakwings/mac-stats/releases).
+This will download a file called `Stats-VERSION.dmg`. Open it and move `Stats.app` to the `/Applications` folder.
 
 ## Requirements
 Stats is supported on the released macOS version starting from macOS 10.15 (Catalina).
@@ -57,10 +51,6 @@ The CPU frequency is available only on Intel-based macs. You need to have instal
 ### How to reduce energy impact or CPU usage of Stats?
 Stats tries to be efficient as it's possible. But reading some data periodically is not a cheap task. Each module has its own "price". So, if you want to reduce energy impact from the Stats you need to disable some Stats modules. The most inefficient modules are Sensors and Bluetooth. Disabling these modules could reduce CPU usage and power efficiency by up to 50% in some cases.
 
-### Why my issue was closed without any response?
-Most probably because it's a duplicated issue and there is an answer to the question, report, or proposition. Please use a search by closed issues to get an answer.
-So, if your issue was closed without any response, most probably it already has a response.
-
 ## Supported languages
 - English
 - Polski
@@ -100,4 +90,4 @@ So, if your issue was closed without any response, most probably it already has 
 You can help by adding a new language or improving the existing translation.
 
 ## License
-[MIT License](https://github.com/exelban/stats/blob/master/LICENSE)
+[MIT License](LICENSE)
