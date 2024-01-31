@@ -108,7 +108,8 @@ extension Helper {
             completion("missing smc tool")
             return
         }
-        let result = syncShell("\(smc) fan \(id) -m \(mode)")
+        //let result = syncShell("\(smc) fan \(id) -m \(mode)")
+        let result = syncShell("\(shellEscape(smc)) fan \(id) -m \(mode)")
         
         if let error = result.error, !error.isEmpty {
             NSLog("error set fan mode: \(error)")
@@ -125,7 +126,8 @@ extension Helper {
             return
         }
         
-        let result = syncShell("\(smc) fan \(id) -v \(value)")
+        //let result = syncShell("\(smc) fan \(id) -v \(value)")
+        let result = syncShell("\(shellEscape(smc)) fan \(id) -v \(value)")
         
         if let error = result.error, !error.isEmpty {
             NSLog("error set fan speed: \(error)")
@@ -174,6 +176,12 @@ extension Helper {
         let error = String(decoding: errorData, as: UTF8.self)
         
         return (output, error)
+    }
+    
+    public func shellEscape(_ arg: String) -> String {
+        let washed = arg.replacingOccurrences(of: "\0", with: "")
+        let quoted = "'\(washed.replacingOccurrences(of: "'", with: "'\\''"))'"
+        return quoted
     }
     
     func uninstall() {

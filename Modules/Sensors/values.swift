@@ -192,6 +192,9 @@ public struct Sensor: Sensor_p, Codable {
         case .temperature:
             return temperature(value).replacingOccurrences(of: "C", with: "").replacingOccurrences(of: "F", with: "")
         case .voltage, .power, .energy, .current:
+            if self.type == .energy && value >= 1000 {
+                return "\(String(format: "%.1f", value / 1000))k\(unit)"
+            }
             let val = value >= 9.95 ? "\(Int(round(value)))" : String(format: "%.1f", value)
             return "\(val)\(unit)"
         case .fan:

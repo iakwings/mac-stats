@@ -500,6 +500,18 @@ public func dialogOKCancel(question: String, text: String) {
     alert.runModal()
 }
 
+public func appleScriptEscape(_ arg: String) -> String {
+    let text = arg.replacingOccurrences(of: "\\", with: "\\\\")
+                  .replacingOccurrences(of: "\"", with: "\\\"");
+    return "\"\(text)\""
+}
+
+public func shellEscape(_ arg: String) -> String {
+    let washed = arg.replacingOccurrences(of: "\0", with: "")
+    let quoted = "'\(washed.replacingOccurrences(of: "'", with: "'\\''"))'"
+    return quoted
+}
+
 public func asyncShell(_ args: String) {
     let task = Process()
     task.launchPath = "/bin/sh"
@@ -914,10 +926,11 @@ public func ensureRoot() {
         return
     }
     
-    let pwd = Bundle.main.bundleURL.absoluteString.replacingOccurrences(of: "file://", with: "")
-    guard let script = NSAppleScript(source: "do shell script \"\(pwd)/Contents/MacOS/Stats > /dev/null 2>&1 &\" with administrator privileges") else {
-        return
-    }
+    let pwd = Bundle.main.bundleURL.absoluteURL.path
+    //guard let script = NSAppleScript(source: "do shell script \"\(pwd)/Contents/MacOS/Stats > /dev/null 2>&1 &\" with administrator privileges") else {
+    //    return
+    //}
+    guard let script = NSAppleScript(source: "do shell script \(appleScriptEscape("\(shellEscape("\(pwd)/Contents/MacOS/Stats")) >/dev/null 2>&1 &")) with administrator privileges") else { return }
     
     var err: NSDictionary? = nil
     script.executeAndReturnError(&err)

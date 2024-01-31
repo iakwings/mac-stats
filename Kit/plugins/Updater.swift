@@ -124,7 +124,11 @@ public class Updater {
                 guard let jsonArray = jsonResponse as? [String: Any],
                       let lastVersion = jsonArray["tag_name"] as? String,
                       let assets = jsonArray["assets"] as? [[String: Any]],
-                      let asset = assets.first(where: {$0["name"] as! String == "\(self.appName).dmg"}),
+                      //let asset = assets.first(where: {$0["name"] as! String == "\(self.appName).dmg"}),
+                      let asset = assets.first(where: {
+                              let name = $0["name"] as! String
+                              return name.hasPrefix(self.appName) && name.hasSuffix(".dmg")
+                          }),
                       let downloadURL = asset["browser_download_url"] as? String else {
                     completion(nil, "parse json")
                     return
@@ -166,11 +170,13 @@ public class Updater {
     }
     
     public func install(path: String, completion: @escaping (_ error: String?) -> Void) {
-        let pwd = Bundle.main.bundleURL.absoluteString
-            .replacingOccurrences(of: "file://", with: "")
-            .replacingOccurrences(of: "Stats.app", with: "")
-            .replacingOccurrences(of: "//", with: "/")
-        let dmg = path.replacingOccurrences(of: "file://", with: "")
+        //let pwd = Bundle.main.bundleURL.absoluteString
+        //    .replacingOccurrences(of: "file://", with: "")
+        //    .replacingOccurrences(of: "Stats.app", with: "")
+        //    .replacingOccurrences(of: "//", with: "/")
+        //let dmg = path.replacingOccurrences(of: "file://", with: "")
+        let pwd = Bundle.main.bundleURL.absoluteURL.deletingLastPathComponent().path
+        let dmg = URL(fileURLWithPath: path).absoluteURL.path
         
         if !FileManager.default.isWritableFile(atPath: pwd) {
             completion("has no write permission on \(pwd)")
@@ -190,22 +196,28 @@ public class Updater {
         print("Started new version installation...")
         
         _ = syncShell("mkdir /tmp/Stats") // make sure that directory exist
-        let res = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen") // mount the dmg
+        //let res = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen") // mount the dmg
+        let res = syncShell("/usr/bin/hdiutil attach \(shellEscape(dmg)) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen") // mount the dmg
         
         print("DMG is mounted")
         
         if res.contains("is busy") { // dmg can be busy, if yes, unmount it and mount again
             print("DMG is busy, remounting")
             
-            _ = syncShell("/usr/bin/hdiutil detach $TMPDIR/Stats")
-            _ = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen")
+            //_ = syncShell("/usr/bin/hdiutil detach $TMPDIR/Stats")
+            //_ = syncShell("/usr/bin/hdiutil attach \(path) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen")
+            _ = syncShell("/usr/bin/hdiutil detach /tmp/Stats")
+            _ = syncShell("/usr/bin/hdiutil attach \(shellEscape(dmg)) -mountpoint /tmp/Stats -noverify -nobrowse -noautoopen")
         }
         
-        _ = syncShell("cp -rf /tmp/Stats/Stats.app/Contents/Resources/Scripts/updater.sh $TMPDIR/updater.sh") // copy updater script to tmp folder
+        //_ = syncShell("cp -rf /tmp/Stats/Stats.app/Contents/Resources/Scripts/updater.sh $TMPDIR/updater.sh") // copy updater script to tmp folder
+        _ = syncShell("cp -rf /tmp/Stats/Stats.app/Contents/Resources/Scripts/updater.sh /tmp/Stats-updater.sh") // copy updater script to tmp folder
         
-        print("Script is copied to $TMPDIR/updater.sh")
+        //print("Script is copied to $TMPDIR/updater.sh")
+        print("Script is copied to /tmp/Stats-updater.sh")
         
-        asyncShell("sh $TMPDIR/updater.sh --app \(pwd) --dmg \(dmg) >/dev/null &") // run updater script in in background
+        //asyncShell("sh $TMPDIR/updater.sh --app \(pwd) --dmg \(dmg) >/dev/null &") // run updater script in in background
+        asyncShell("sh /tmp/Stats-updater.sh --app \(shellEscape(pwd)) --dmg \(shellEscape(dmg)) >/dev/null &") // run updater script in in background
         
         print("Run updater.sh with app: \(pwd) and dmg: \(dmg)")
         
@@ -213,21 +225,27 @@ public class Updater {
     }
     
     private func copyFile(from: URL, to: URL, completionHandler: @escaping (_ path: String, _ error: Error?) -> Void) {
-        var toPath = to
-        let fileName = (URL(fileURLWithPath: to.absoluteString)).lastPathComponent
-        let fileExt  = (URL(fileURLWithPath: to.absoluteString)).pathExtension
+        //var toPath = to
+        //let fileName = (URL(fileURLWithPath: to.absoluteString)).lastPathComponent
+        //let fileExt  = (URL(fileURLWithPath: to.absoluteString)).pathExtension
+        var toPath = to.absoluteURL
+        let fileName = to.lastPathComponent
+        let fileExt  = ".\(to.pathExtension)"
         var fileNameWithoutSuffix: String!
         var newFileName: String!
         var counter = 0
         
         if fileName.hasSuffix(fileExt) {
-            fileNameWithoutSuffix = String(fileName.prefix(fileName.count - (fileExt.count+1)))
+            //fileNameWithoutSuffix = String(fileName.prefix(fileName.count - (fileExt.count+1)))
+            fileNameWithoutSuffix = String(fileName.prefix(fileName.count - fileExt.count))
         }
         
         while toPath.checkFileExist() {
             counter += 1
-            newFileName =  "\(fileNameWithoutSuffix!)-\(counter).\(fileExt)"
-            toPath = to.deletingLastPathComponent().appendingPathComponent(newFileName)
+            //newFileName =  "\(fileNameWithoutSuffix!)-\(counter).\(fileExt)"
+            //toPath = to.deletingLastPathComponent().appendingPathComponent(newFileName)
+            newFileName =  "\(fileNameWithoutSuffix!)-\(counter)\(fileExt)"
+            toPath = toPath.deletingLastPathComponent().appendingPathComponent(newFileName)
         }
         
         do {
